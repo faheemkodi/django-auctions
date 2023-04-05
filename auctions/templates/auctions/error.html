@@ -1,0 +1,11 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    {{ code }}
+{% endblock %}
+
+{% block body %}
+    <h3 class="text-danger">{{ message }}</h3>
+    <p class="lead">The current bid price is ${{ listing_price|floatformat:2 }}.</p>
+    <a href="{% url 'listing' listing_id %}">Go back</a>
+{% endblock %}

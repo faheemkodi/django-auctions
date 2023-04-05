@@ -1,0 +1,82 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    {{ listing.title }}
+{% endblock %}
+
+{% block body %}
+    {% block message %}
+    {% endblock %}
+    <h2>Listing: {{ listing.title }}</h2>
+    {% if user.is_authenticated and listing.winner.id == user.id %}
+        <p class="lead text-success">You have won this listing. Congratulations!</p>
+    {% endif %}
+    <form action="{% url 'watchlist' %}" method="post">
+        {% csrf_token %}
+        <input hidden name="listing_id" value="{{ listing.id }}">
+        <button class="badge bg-dark text-light" type="submit">
+            {% if watchlisted == True %}
+                Remove From Watchlist
+            {% else %}
+                Watchlist
+            {% endif %}
+        </button>
+    </form>
+    
+    <div class="d-flex align-items-center" style="height: 500px; width: 500px;">
+        <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-fluid">
+    </div>
+    <p>{{ listing.description }}</p>
+    <h2 class="font-weight-bold">${{ listing.price|floatformat:2 }}</h2>
+    {% if listing.active %}
+        <p class="small">
+            {{ bid_count }} bid(s) so far.
+            {% if winning %}
+                Your bid is the current bid.
+            {% else %}
+                Your bid is not the current bid.
+            {% endif %}
+        </p>
+    {% else %}
+        <p class="text-danger lead">Listing Closed by {{ listing.user.username }}</p>
+    {% endif %}
+
+    {% if listing.active %}
+        <form action="{% url 'bid' listing.id %}" method="post">
+            {% csrf_token %}
+            <input hidden name="listing_id" value="{{ listing.id }}">
+            <div class="form-group">
+                {{ form.amount }}
+            </div>
+            <input class="btn btn-primary" type="submit" value="Place Bid">
+        </form>
+    {% endif %}
+    <h3 class="mt-3">Details</h3>
+    <ul>
+        <li>Listed by: {{ listing.user.username }}</li>
+        <li>Category: {{ listing.category }}</li>
+    </ul>
+    {% if listing.user.id == request.user.id and listing.active %}
+        <form action="{% url 'close' listing.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Close Listing" class="btn btn-danger mb-3">
+        </form>        
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'comment' listing.id %}" method="post">
+            {% csrf_token %}
+            {{ comment.content }}
+            <input type="submit" value="Add Comment" class="btn btn-primary">
+        </form>
+    {% endif %}
+    <h3 class="mt-3">Comments</h3>
+    {% for comment in comments %}
+        <div class="card bg-light p-3 mb-2">
+            <h4 class="font-weight-bold">{{ comment.user.username }}</h4>
+            <p class="lead">{{ comment.content }}</p>
+            <p class="small text-muted">Commented on {{ comment.created_at }}</p>
+        </div>
+    {% endfor %}
+
+{% endblock %}
